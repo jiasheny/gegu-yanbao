@@ -449,7 +449,7 @@
         }
 
         function renderSuggestions(items) {
-            candidates = items.slice(0, 8);
+            candidates = items.slice(0, 20);
             activeIndex = candidates.length ? 0 : -1;
             suggestions.innerHTML = '';
 
@@ -514,8 +514,15 @@
                 code: stock.UnifiedCode || stock.Code,
                 name: stock.Name,
                 pinyin: stock.PinYin || '',
-                market: stock.SecurityTypeName || stock.Classify || 'A股'
+                market: stock.SecurityTypeName || stock.Classify || 'A股',
+                classify: stock.Classify || '',
+                securityType: stock.SecurityType || ''
             };
+        }
+
+        function isReportStock(stock) {
+            return /^\d{6}$/.test(stock.code)
+                && (!stock.classify || stock.classify === 'AStock');
         }
 
         function requestSuggestions(query) {
@@ -524,6 +531,7 @@
                 const params = new URLSearchParams({
                     input: query,
                     type: '14',
+                    count: '20',
                     token: suggestToken,
                     cb: callbackName
                 });
@@ -582,9 +590,7 @@
                 const data = payload.QuotationCodeTable?.Data || [];
                 const onlineMatches = data
                     .map(mapApiStock)
-                    .filter(function (stock) {
-                        return /^\d{6}$/.test(stock.code);
-                    });
+                    .filter(isReportStock);
                 const merged = [...getFallbackMatches(query), ...onlineMatches]
                     .filter(function (stock, index, list) {
                         return list.findIndex(function (item) {
