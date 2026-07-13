@@ -380,6 +380,7 @@
         const fallbackStocks = [
             { code: '601899', name: '紫金矿业', pinyin: 'ZJKY', market: '沪A', aliases: ['资金矿业'] },
             { code: '688676', name: '金盘科技', pinyin: 'JPKJ', market: '科创板' },
+            { code: '000933', name: '神火股份', pinyin: 'SHGF', market: '深A' },
             { code: '600519', name: '贵州茅台', pinyin: 'GZMT', market: '沪A' },
             { code: '300750', name: '宁德时代', pinyin: 'NDSD', market: '创业板' },
             { code: '000001', name: '平安银行', pinyin: 'PAYH', market: '深A' }
@@ -584,7 +585,7 @@
                     .filter(function (stock) {
                         return /^\d{6}$/.test(stock.code);
                     });
-                const merged = [...onlineMatches, ...getFallbackMatches(query)]
+                const merged = [...getFallbackMatches(query), ...onlineMatches]
                     .filter(function (stock, index, list) {
                         return list.findIndex(function (item) {
                             return item.code === stock.code;
