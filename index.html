@@ -3,37 +3,738 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f6f7fb">
     <title>东方财富个股研报直达</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background-color: #f0f2f5; }
-        .card { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; width: 90%; max-width: 320px; }
-        h2 { margin-top: 0; color: #333; font-size: 22px; margin-bottom: 25px; }
-        input { width: 100%; padding: 15px; font-size: 16px; border: 1px solid #e1e4e8; border-radius: 8px; box-sizing: border-box; margin-bottom: 15px; outline: none; transition: all 0.2s; background: #fafafa; text-align: center; letter-spacing: 1px; }
-        input:focus { border-color: #ff5000; background: #fff; box-shadow: 0 0 0 3px rgba(255,80,0,0.1); }
-        button { width: 100%; padding: 15px; font-size: 16px; background-color: #ff5000; color: white; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; font-weight: 600; }
-        button:hover { background-color: #e04600; }
-        .footer { margin-top: 25px; font-size: 12px; color: #999; }
+        :root {
+            color-scheme: light;
+            --accent: #e95520;
+            --accent-dark: #c94112;
+            --ink: #17181c;
+            --muted: #6b7280;
+            --line: #dde2ea;
+            --panel: rgba(255, 255, 255, 0.92);
+            --error: #b42318;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", Roboto, Arial, sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at 20% 10%, rgba(233, 85, 32, 0.13), transparent 28%),
+                linear-gradient(135deg, #f8fafc 0%, #eef2f7 48%, #fff6f1 100%);
+        }
+
+        main {
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 32px 18px;
+        }
+
+        .shell {
+            width: min(100%, 460px);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .brand-mark {
+            width: 42px;
+            height: 42px;
+            display: grid;
+            place-items: center;
+            border-radius: 8px;
+            color: #ffffff;
+            background: var(--accent);
+            font-size: 20px;
+            font-weight: 800;
+            box-shadow: 0 12px 24px rgba(233, 85, 32, 0.22);
+        }
+
+        .brand-text {
+            flex: 1;
+        }
+
+        .eyebrow {
+            margin: 0 0 4px;
+            color: var(--accent-dark);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(28px, 8vw, 38px);
+            line-height: 1.08;
+            letter-spacing: 0;
+        }
+
+        .card {
+            width: 100%;
+            padding: 24px;
+            border: 1px solid rgba(221, 226, 234, 0.9);
+            border-radius: 8px;
+            background: var(--panel);
+            box-shadow: 0 18px 52px rgba(17, 24, 39, 0.10);
+            backdrop-filter: blur(14px);
+        }
+
+        .field-label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .input-row {
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+        }
+
+        input {
+            width: 100%;
+            height: 52px;
+            padding: 0 16px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            outline: none;
+            background: #ffffff;
+            color: var(--ink);
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 0;
+            text-align: left;
+            transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+        }
+
+        input::placeholder {
+            color: #a0a7b4;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(233, 85, 32, 0.13);
+        }
+
+        button {
+            height: 52px;
+            min-width: 104px;
+            padding: 0 18px;
+            border: 0;
+            border-radius: 8px;
+            background: var(--accent);
+            color: #ffffff;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 750;
+            transition: transform 0.18s ease, background-color 0.18s ease, opacity 0.18s ease;
+        }
+
+        button:hover:not(:disabled) {
+            background: var(--accent-dark);
+            transform: translateY(-1px);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+            opacity: 0.55;
+        }
+
+        .suggestions {
+            position: absolute;
+            z-index: 5;
+            top: 62px;
+            left: 0;
+            width: min(100%, calc(100% - 114px));
+            max-height: 260px;
+            overflow: auto;
+            padding: 6px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #ffffff;
+            box-shadow: 0 16px 36px rgba(17, 24, 39, 0.14);
+        }
+
+        .suggestions[hidden] {
+            display: none;
+        }
+
+        .suggestion-item {
+            width: 100%;
+            height: auto;
+            min-width: 0;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            align-items: center;
+            padding: 10px 12px;
+            border: 0;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--ink);
+            text-align: left;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .suggestion-item:hover,
+        .suggestion-item.active {
+            background: #fff3ed;
+            color: var(--accent-dark);
+            transform: none;
+        }
+
+        .suggestion-name {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            min-width: 0;
+        }
+
+        .suggestion-name strong,
+        .suggestion-code {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .suggestion-name span {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .suggestion-code {
+            color: #343844;
+            font-variant-numeric: tabular-nums;
+            font-weight: 800;
+        }
+
+        .message {
+            min-height: 22px;
+            margin: 10px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .message.error {
+            color: var(--error);
+        }
+
+        .quick-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 18px;
+        }
+
+        .quick-code {
+            height: 34px;
+            min-width: auto;
+            padding: 0 12px;
+            border: 1px solid var(--line);
+            background: #ffffff;
+            color: #343844;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .quick-code:hover {
+            border-color: rgba(233, 85, 32, 0.5);
+            background: #fff7f3;
+            color: var(--accent-dark);
+            transform: none;
+        }
+
+        .meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 18px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .meta a {
+            color: var(--accent-dark);
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .meta a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 420px) {
+            main {
+                align-items: start;
+                padding-top: 44px;
+            }
+
+            .brand {
+                align-items: flex-start;
+            }
+
+            .input-row {
+                grid-template-columns: 1fr;
+            }
+
+            #submitButton {
+                width: 100%;
+            }
+
+            .suggestions {
+                position: static;
+                width: 100%;
+                grid-column: 1 / -1;
+                max-height: 230px;
+            }
+
+            .meta {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h2>个股研报查询</h2>
-        <input type="tel" id="stockCode" placeholder="输入代码 (如 688676)" maxlength="6">
-        <button onclick="goToReport()">立即查看</button>
-        <div class="footer">Powered by GitHub Pages</div>
-    </div>
+    <main>
+        <section class="shell" aria-labelledby="pageTitle">
+            <header class="brand">
+                <div class="brand-mark" aria-hidden="true">研</div>
+                <div class="brand-text">
+                    <p class="eyebrow">东方财富</p>
+                    <h1 id="pageTitle">个股研报查询</h1>
+                </div>
+            </header>
+
+            <form class="card" id="reportForm" novalidate>
+                <label class="field-label" for="stockSearch">股票代码 / 名称 / 拼音首字母</label>
+                <div class="input-row">
+                    <input
+                        id="stockSearch"
+                        name="stockSearch"
+                        type="search"
+                        inputmode="search"
+                        autocomplete="off"
+                        placeholder="例如 688676 / 紫金矿业 / zjky"
+                        aria-describedby="message"
+                        aria-controls="suggestions"
+                        aria-expanded="false"
+                        role="combobox"
+                    >
+                    <button id="submitButton" type="submit" disabled>查询</button>
+                    <div class="suggestions" id="suggestions" role="listbox" hidden></div>
+                </div>
+
+                <p class="message" id="message" aria-live="polite">输入代码、股票名或拼音首字母，选择候选后打开研报页面。</p>
+
+                <div class="quick-list" aria-label="常用代码">
+                    <button class="quick-code" type="button" data-code="601899" data-name="紫金矿业" data-pinyin="ZJKY">紫金矿业</button>
+                    <button class="quick-code" type="button" data-code="688676" data-name="金盘科技" data-pinyin="JPKJ">金盘科技</button>
+                    <button class="quick-code" type="button" data-code="600519" data-name="贵州茅台" data-pinyin="GZMT">贵州茅台</button>
+                    <button class="quick-code" type="button" data-code="300750" data-name="宁德时代" data-pinyin="NDSD">宁德时代</button>
+                </div>
+
+                <div class="meta">
+                    <span>GitHub Pages</span>
+                    <a id="previewLink" href="https://data.eastmoney.com/report/singlestock.jshtml" target="_blank" rel="noopener noreferrer">东方财富研报</a>
+                </div>
+            </form>
+        </section>
+    </main>
+
     <script>
-        function goToReport() {
-            var code = document.getElementById('stockCode').value.trim();
-            if(code.length >= 6) { // 简单的长度检查
-                window.open('https://data.eastmoney.com/report/singlestock.jshtml?stockcode=' + code, '_blank');
-            } else {
-                alert('请输入正确的6位股票代码');
+        const form = document.getElementById('reportForm');
+        const input = document.getElementById('stockSearch');
+        const submitButton = document.getElementById('submitButton');
+        const message = document.getElementById('message');
+        const previewLink = document.getElementById('previewLink');
+        const suggestions = document.getElementById('suggestions');
+        const quickCodes = document.querySelectorAll('.quick-code');
+        const reportBaseUrl = 'https://data.eastmoney.com/report/singlestock.jshtml';
+        const suggestUrl = 'https://searchapi.eastmoney.com/api/suggest/get';
+        const suggestToken = '22f9f3a1c87d067c329dbede024a42ff';
+        const fallbackStocks = [
+            { code: '601899', name: '紫金矿业', pinyin: 'ZJKY', market: '沪A', aliases: ['资金矿业'] },
+            { code: '688676', name: '金盘科技', pinyin: 'JPKJ', market: '科创板' },
+            { code: '600519', name: '贵州茅台', pinyin: 'GZMT', market: '沪A' },
+            { code: '300750', name: '宁德时代', pinyin: 'NDSD', market: '创业板' },
+            { code: '000001', name: '平安银行', pinyin: 'PAYH', market: '深A' }
+        ];
+
+        let currentQuery = '';
+        let selectedStock = null;
+        let candidates = [];
+        let activeIndex = -1;
+        let searchTimer = null;
+        let requestId = 0;
+
+        function normalize(value) {
+            return value.trim().toLowerCase();
+        }
+
+        function buildReportUrl(code) {
+            return `${reportBaseUrl}?stockcode=${encodeURIComponent(code)}`;
+        }
+
+        function setMessage(text, isError) {
+            message.textContent = text;
+            message.classList.toggle('error', Boolean(isError));
+        }
+
+        function isSixDigitCode(value) {
+            return /^\d{6}$/.test(value.trim());
+        }
+
+        function sameStock(left, right) {
+            return left && right && left.code === right.code;
+        }
+
+        function formatStockLabel(stock) {
+            return `${stock.name} ${stock.code}`;
+        }
+
+        function setInputStock(stock) {
+            selectedStock = stock;
+            input.value = formatStockLabel(stock);
+            submitButton.disabled = false;
+            previewLink.href = buildReportUrl(stock.code);
+            setMessage(`即将查询 ${stock.name}（${stock.code}）的个股研报。`);
+        }
+
+        function clearSuggestions() {
+            candidates = [];
+            activeIndex = -1;
+            suggestions.innerHTML = '';
+            suggestions.hidden = true;
+            input.setAttribute('aria-expanded', 'false');
+        }
+
+        function setActiveIndex(nextIndex) {
+            activeIndex = nextIndex;
+            suggestions.querySelectorAll('.suggestion-item').forEach(function (item, index) {
+                item.classList.toggle('active', index === activeIndex);
+                item.setAttribute('aria-selected', index === activeIndex ? 'true' : 'false');
+            });
+        }
+
+        function pickCandidate(stock) {
+            setInputStock(stock);
+            clearSuggestions();
+            input.focus();
+        }
+
+        function renderSuggestions(items) {
+            candidates = items.slice(0, 8);
+            activeIndex = candidates.length ? 0 : -1;
+            suggestions.innerHTML = '';
+
+            if (!candidates.length) {
+                clearSuggestions();
+                return;
+            }
+
+            candidates.forEach(function (stock, index) {
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.className = `suggestion-item${index === activeIndex ? ' active' : ''}`;
+                item.setAttribute('role', 'option');
+                item.setAttribute('aria-selected', index === activeIndex ? 'true' : 'false');
+
+                const nameBox = document.createElement('span');
+                nameBox.className = 'suggestion-name';
+                const nameText = document.createElement('strong');
+                nameText.textContent = stock.name;
+                const metaText = document.createElement('span');
+                metaText.textContent = `${stock.pinyin || '-'} · ${stock.market || 'A股'}`;
+                const codeText = document.createElement('span');
+                codeText.className = 'suggestion-code';
+                codeText.textContent = stock.code;
+
+                nameBox.append(nameText, metaText);
+                item.append(nameBox, codeText);
+                item.addEventListener('mousedown', function (event) {
+                    event.preventDefault();
+                });
+                item.addEventListener('click', function () {
+                    pickCandidate(stock);
+                });
+                suggestions.appendChild(item);
+            });
+
+            suggestions.hidden = false;
+            input.setAttribute('aria-expanded', 'true');
+        }
+
+        function getFallbackMatches(query) {
+            const keyword = normalize(query);
+
+            if (!keyword) {
+                return [];
+            }
+
+            return fallbackStocks.filter(function (stock) {
+                const aliases = stock.aliases || [];
+
+                return stock.code.includes(keyword)
+                    || stock.name.includes(query.trim())
+                    || stock.pinyin.toLowerCase().includes(keyword)
+                    || aliases.some(function (alias) {
+                        return alias.includes(query.trim());
+                    });
+            });
+        }
+
+        function mapApiStock(stock) {
+            return {
+                code: stock.UnifiedCode || stock.Code,
+                name: stock.Name,
+                pinyin: stock.PinYin || '',
+                market: stock.SecurityTypeName || stock.Classify || 'A股'
+            };
+        }
+
+        function requestSuggestions(query) {
+            return new Promise(function (resolve, reject) {
+                const callbackName = `eastmoneySuggest_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+                const params = new URLSearchParams({
+                    input: query,
+                    type: '14',
+                    token: suggestToken,
+                    cb: callbackName
+                });
+                const script = document.createElement('script');
+                let settled = false;
+
+                function cleanup() {
+                    window.clearTimeout(timer);
+                    script.remove();
+                    delete window[callbackName];
+                }
+
+                const timer = window.setTimeout(function () {
+                    if (settled) {
+                        return;
+                    }
+
+                    settled = true;
+                    cleanup();
+                    reject(new Error('suggestion request timed out'));
+                }, 5000);
+
+                window[callbackName] = function (payload) {
+                    if (settled) {
+                        return;
+                    }
+
+                    settled = true;
+                    cleanup();
+                    resolve(payload);
+                };
+
+                script.onerror = function () {
+                    if (settled) {
+                        return;
+                    }
+
+                    settled = true;
+                    cleanup();
+                    reject(new Error('suggestion request failed'));
+                };
+
+                script.src = `${suggestUrl}?${params.toString()}`;
+                document.head.appendChild(script);
+            });
+        }
+
+        async function fetchCandidates(query, id) {
+            try {
+                const payload = await requestSuggestions(query);
+
+                if (id !== requestId) {
+                    return;
+                }
+
+                const data = payload.QuotationCodeTable?.Data || [];
+                const onlineMatches = data
+                    .map(mapApiStock)
+                    .filter(function (stock) {
+                        return /^\d{6}$/.test(stock.code);
+                    });
+                const merged = [...onlineMatches, ...getFallbackMatches(query)]
+                    .filter(function (stock, index, list) {
+                        return list.findIndex(function (item) {
+                            return item.code === stock.code;
+                        }) === index;
+                    });
+
+                renderSuggestions(merged);
+
+                if (merged.length) {
+                    selectedStock = sameStock(selectedStock, merged[0]) ? selectedStock : null;
+                    submitButton.disabled = false;
+                    previewLink.href = buildReportUrl((selectedStock || merged[0]).code);
+                    setMessage(`找到 ${merged.length} 个候选，回车默认查询第一个。`);
+                } else if (isSixDigitCode(query)) {
+                    selectedStock = { code: query, name: query, pinyin: '', market: 'A股' };
+                    submitButton.disabled = false;
+                    previewLink.href = buildReportUrl(query);
+                    setMessage(`即将查询 ${query} 的个股研报。`);
+                } else {
+                    selectedStock = null;
+                    submitButton.disabled = true;
+                    previewLink.href = reportBaseUrl;
+                    setMessage('没有找到匹配股票，请试试完整名称、代码或拼音首字母。', true);
+                }
+            } catch (error) {
+                if (id !== requestId) {
+                    return;
+                }
+
+                const fallbackMatches = getFallbackMatches(query);
+                renderSuggestions(fallbackMatches);
+                selectedStock = fallbackMatches[0] || (isSixDigitCode(query) ? { code: query, name: query, pinyin: '', market: 'A股' } : null);
+                submitButton.disabled = !selectedStock;
+                previewLink.href = selectedStock ? buildReportUrl(selectedStock.code) : reportBaseUrl;
+                setMessage(selectedStock ? '已使用本地候选，点击查询打开研报。' : '暂时无法获取候选，请输入 6 位代码。', !selectedStock);
             }
         }
-        document.getElementById('stockCode').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') goToReport();
+
+        function syncState() {
+            const query = input.value.trim();
+            currentQuery = query;
+
+            if (!query) {
+                selectedStock = null;
+                clearSuggestions();
+                submitButton.disabled = true;
+                previewLink.href = reportBaseUrl;
+                setMessage('输入代码、股票名或拼音首字母，选择候选后打开研报页面。');
+                return;
+            }
+
+            if (selectedStock && formatStockLabel(selectedStock) === query) {
+                submitButton.disabled = false;
+                previewLink.href = buildReportUrl(selectedStock.code);
+                setMessage(`即将查询 ${selectedStock.name}（${selectedStock.code}）的个股研报。`);
+                return;
+            }
+
+            selectedStock = null;
+
+            if (isSixDigitCode(query)) {
+                submitButton.disabled = false;
+                previewLink.href = buildReportUrl(query);
+                setMessage(`可直接查询代码 ${query}，也可从候选中选择股票。`);
+            } else {
+                submitButton.disabled = true;
+                previewLink.href = reportBaseUrl;
+                setMessage('正在查找候选...');
+            }
+
+            window.clearTimeout(searchTimer);
+            const id = ++requestId;
+            searchTimer = window.setTimeout(function () {
+                fetchCandidates(query, id);
+            }, 220);
+        }
+
+        function getSubmitStock() {
+            if (selectedStock) {
+                return selectedStock;
+            }
+
+            if (activeIndex >= 0 && candidates[activeIndex]) {
+                return candidates[activeIndex];
+            }
+
+            if (candidates[0]) {
+                return candidates[0];
+            }
+
+            if (isSixDigitCode(currentQuery)) {
+                return { code: currentQuery, name: currentQuery, pinyin: '', market: 'A股' };
+            }
+
+            return null;
+        }
+
+        function openReport(stock) {
+            window.open(buildReportUrl(stock.code), '_blank', 'noopener,noreferrer');
+        }
+
+        input.addEventListener('input', syncState);
+
+        input.addEventListener('keydown', function (event) {
+            if (suggestions.hidden || !candidates.length) {
+                return;
+            }
+
+            if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                setActiveIndex((activeIndex + 1) % candidates.length);
+            } else if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                setActiveIndex((activeIndex - 1 + candidates.length) % candidates.length);
+            } else if (event.key === 'Escape') {
+                clearSuggestions();
+            }
         });
+
+        input.addEventListener('blur', function () {
+            window.setTimeout(clearSuggestions, 150);
+        });
+
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            const stock = getSubmitStock();
+
+            if (!stock) {
+                input.focus();
+                setMessage('请先输入股票代码、名称或拼音首字母，并选择一个候选。', true);
+                return;
+            }
+
+            openReport(stock);
+        });
+
+        quickCodes.forEach(function (button) {
+            button.addEventListener('click', function () {
+                pickCandidate({
+                    code: button.dataset.code,
+                    name: button.dataset.name,
+                    pinyin: button.dataset.pinyin,
+                    market: '常用'
+                });
+                input.focus();
+            });
+        });
+
+        input.focus();
+        syncState();
     </script>
 </body>
 </html>
